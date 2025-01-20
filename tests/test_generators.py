@@ -34,30 +34,22 @@ def transactions():
         }
     ]
 
+
 def test_filter_by_currency(transactions):
-    # Тестируем фильтрацию по USD
-    result = filter_by_currency(transactions, currency="USD")
-    assert result is not None
-    assert result["id"] == 123456789
+    txs = transactions
+    test_cases = {"USD": 123456789, "RUB": 93971950, "EUR": 142264268, "JPY": None}
 
-    # Тестируем фильтрацию по RUB
-    result = filter_by_currency(transactions, currency="RUB")
-    assert result is not None  # Теперь ожидаем, что транзакция есть
-    assert result["id"] == 93971950  # Проверяем, что это правильная транзакция
+    for currency, expected_id in test_cases.items():
+        result = list(filter_by_currency(txs, currency=currency))
+        if expected_id is None:
+            assert len(result) == 0
+        else:
+            assert len(result) == 1
+            assert result[0]["id"] == expected_id
 
-    # Тестируем фильтрацию по EUR
-    result = filter_by_currency(transactions, currency="EUR")
-    assert result is not None
-    assert result["id"] == 142264268
-
-    # Тестируем фильтрацию по валюте, которой нет в списке
-    result = filter_by_currency(transactions, currency="JPY")
-    assert result is None  # Нет транзакций в JPY
-
-    # Тестируем фильтрацию без указания валюты (по умолчанию USD)
-    result = filter_by_currency(transactions)  # Вызов без аргумента currency
-    assert result is not None
-    assert result["id"] == 123456789  # Ожидаем, что вернется транзакция с ID 123456789
+    result = list(filter_by_currency(txs))
+    assert len(result) == 1
+    assert result[0]["id"] == 123456789
 
 
 @pytest.fixture

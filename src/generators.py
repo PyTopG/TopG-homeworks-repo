@@ -1,17 +1,12 @@
-from typing import Iterator, Optional
+from typing import Iterator
 
 
-def filter_by_currency(transactions: list[dict], currency: str = "USD") -> Optional[dict]:
+def filter_by_currency(transactions: list[dict], currency: str = "USD") -> Iterator[dict]:
     """Функция, которая принимает на вход список словарей, представляющих транзакции,
-    и возвращает первую транзакцию, где валюта равна заданной, или None, если такой транзакции нет."""
-    return next(
-        (
-            transaction
-            for transaction in transactions
-            if transaction.get("operationAmount").get("currency").get("code") == currency
-        ),
-        None,
-    )
+    и возвращает итератор, который выдает транзакции, где валюта равна заданной."""
+    for transaction in transactions:
+        if transaction.get("operationAmount", {}).get("currency", {}).get("code") == currency:
+            yield transaction
 
 
 def transaction_descriptions(transactions: list[dict]) -> Iterator[str]:
