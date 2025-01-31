@@ -1,44 +1,62 @@
 import unittest
-from unittest.mock import patch, Mock
-from dotenv import load_dotenv
+from unittest.mock import Mock, patch
 
-# Измените путь импорта в зависимости от вашей структуры каталогов
+import requests
+
 from src.external_api import convert_to_rub
 
-class TestCurrencyConversion(unittest.TestCase):
 
-    @patch('src.external_api.requests.get')
-    def test_convert_to_rub_success(self, mock_get):
+class TestConvertToRub(unittest.TestCase):
+
+    @patch("requests.request")
+    def test_convert_to_rub_success(self, mock_request):
+        # Настройка имитации успешного ответа от API
         mock_response = Mock()
-        mock_response.json.return_value = {'rates': {'RUB': 75.0}}
-        mock_response.status_code = 200
-        mock_get.return_value = mock_response
+        mock_response.json.return_value = {"result": 100.0}
+        mock_response.raise_for_status = Mock()
+        mock_request.return_value = mock_response
 
+        transaction = {"operationAmount": {"amount": 10, "currency": {"code": "USD"}}}
 
-    @patch('src.external_api.requests.get')
-    def test_convert_to_rub_currency_already_rub(self, mock_get):
-        transaction = {'amount': 100, 'currency': 'RUB'}
         result = convert_to_rub(transaction)
         self.assertEqual(result, 100.0)
+        mock_request.assert_called_once()
 
-    @patch('src.external_api.requests.get')
-    def test_convert_to_rub_api_error(self, mock_get):
+    @patch("requests.request")
+    def test_convert_to_rub_no_result(self, mock_request):
+        # Настройка имитации ответа без 'result'
         mock_response = Mock()
-        mock_response.raise_for_status.side_effect = Exception("API Error")
-        mock_get.return_value = mock_response
+        mock_response.json.return_value = {}
+        mock_response.raise_for_status = Mock()
+        mock_request.return_value = mock_response
 
+        transaction = {"operationAmount": {"amount": 10, "currency": {"code": "USD"}}}
 
-    @patch('src.external_api.requests.get')
-    def test_convert_to_rub_invalid_currency(self, mock_get):
-        mock_response = Mock()
-        mock_response.json.return_value = {'rates': {}}
-        mock_response.status_code = 200
-        mock_get.return_value = mock_response
-
-        transaction = {'amount': 100, 'currency': 'INVALID'}
         result = convert_to_rub(transaction)
         self.assertIsNone(result)
+        mock_request.assert_called_once()
 
-if __name__ == '__main__':
-    load_dotenv()
-    unittest.main()
+    @patch("requests.request")
+    def test_convert_to_rub_request_exception(self, mock_request):
+        # Настройка имитации исключения при запросе
+        mock_request.side_effect = requests.exceptions.RequestException
+
+        transaction = {"operationAmount": {"amount": 10, "currency": {"code": "USD"}}}
+
+        result = convert_to_rub(transaction)
+        self.assertIsNone(result)
+        mock_request.assert_called_once()
+
+    @patch("requests.request")
+    def test_convert_to_rub_key_error(self, mock_request):
+        # Настройка имитации успешного ответа, но с отсутствующим ключом
+        mock_response = Mock()
+        mock_response.json.return_value = {"unexpected_key": 100.0}
+        mock_response.raise_for_status = Mock()
+        mock_request.return_value = mock_response
+
+        transaction = {"operationAmount": {"amount": 10, "currency": {"code": "USD"}}}
+
+        result = convert_to_rub(transaction)
+        self.assertIsNone(result)
+        mock_request.assert_called_once()

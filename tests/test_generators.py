@@ -1,5 +1,7 @@
 import pytest
-from src.generators import filter_by_currency, transaction_descriptions, card_number_generator
+
+from src.generators import card_number_generator, filter_by_currency, transaction_descriptions
+
 
 # Фикстура, которая предоставляет тестовые данные
 @pytest.fixture
@@ -12,7 +14,7 @@ def transactions():
             "operationAmount": {"amount": "9824.07", "currency": {"name": "RUB", "code": "RUB"}},
             "description": "Перевод организации",
             "from": "Счет 75106830613657916952",
-            "to": "Счет 11776614605963066702"
+            "to": "Счет 11776614605963066702",
         },
         {
             "id": 142264268,
@@ -21,7 +23,7 @@ def transactions():
             "operationAmount": {"amount": "79114.93", "currency": {"name": "EUR", "code": "EUR"}},
             "description": "Перевод со счета на счет",
             "from": "Счет 19708645243227258542",
-            "to": "Счет 75651667383060284188"
+            "to": "Счет 75651667383060284188",
         },
         {
             "id": 123456789,
@@ -30,8 +32,8 @@ def transactions():
             "operationAmount": {"amount": "100.00", "currency": {"name": "USD", "code": "USD"}},
             "description": "",
             "from": "Счет 12345678901234567890",
-            "to": "Счет 09876543210987654321"
-        }
+            "to": "Счет 09876543210987654321",
+        },
     ]
 
 
@@ -68,36 +70,54 @@ def test_transaction_descriptions_empty():
     assert result == []
 
 
-@pytest.mark.parametrize("start, stop, expected", [
-    (0, 5, [
-        "0000 0000 0000 0000",
-        "0000 0000 0000 0001",
-        "0000 0000 0000 0002",
-        "0000 0000 0000 0003",
-        "0000 0000 0000 0004",
-        "0000 0000 0000 0005",
-    ]),
-    (9999, 10001, [
-        "0000 0000 0000 9999",
-        "0000 0000 0001 0000",
-        "0000 0000 0001 0001",
-    ]),
-    (0, 0, [
-        "0000 0000 0000 0000",
-    ]),
-])
+@pytest.mark.parametrize(
+    "start, stop, expected",
+    [
+        (
+            0,
+            5,
+            [
+                "0000 0000 0000 0000",
+                "0000 0000 0000 0001",
+                "0000 0000 0000 0002",
+                "0000 0000 0000 0003",
+                "0000 0000 0000 0004",
+                "0000 0000 0000 0005",
+            ],
+        ),
+        (
+            9999,
+            10001,
+            [
+                "0000 0000 0000 9999",
+                "0000 0000 0001 0000",
+                "0000 0000 0001 0001",
+            ],
+        ),
+        (
+            0,
+            0,
+            [
+                "0000 0000 0000 0000",
+            ],
+        ),
+    ],
+)
 def test_card_number_generator_normal(start, stop, expected):
     result = list(card_number_generator(start, stop))
     assert result == expected
 
+
 # Параметризованный тест для проверки исключений
-@pytest.mark.parametrize("start, stop, expected_message", [
-    (5, 3, "start не должен превышать stop"),
-    (-1, 5, "Параметры start и stop должны быть неотрицательными"),
-    (0, -5, "Параметры start и stop должны быть неотрицательными"),
-    (0, 10000000000000000, "Значение stop не должно превышать 9999999999999999"),
-])
+@pytest.mark.parametrize(
+    "start, stop, expected_message",
+    [
+        (5, 3, "start не должен превышать stop"),
+        (-1, 5, "Параметры start и stop должны быть неотрицательными"),
+        (0, -5, "Параметры start и stop должны быть неотрицательными"),
+        (0, 10000000000000000, "Значение stop не должно превышать 9999999999999999"),
+    ],
+)
 def test_card_number_generator_exceptions(start, stop, expected_message):
     with pytest.raises(ValueError, match=expected_message):
         list(card_number_generator(start, stop))
-
