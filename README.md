@@ -60,6 +60,18 @@ for description in transaction_descriptions(transactions):
     print(description)
 ```
 ### 3. `card_number_generator(start: int = 0, stop: int = 9999999999999999) -> Iterator[str]`
+=======
+1. Загрузите данные для работы с приложением
+2. Для работы приложения воспользуйтесь модулем `main.py`
+
+## Тестирование:
+
+1. Установите фреймворк pytest при помощи команды:
+```
+poetry add --group dev pytest pytest-cov
+```
+2. Тестирование проекта осуществляется командой `pytest`
+3. Введите команду `poetry run pytest --cov`,чтобы посмотреть покрытие тестами программы
 
 Генерирует номера банковских карт в формате XXXX XXXX XXXX XXXX.
 
